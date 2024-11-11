@@ -36,6 +36,46 @@ def add_goal():
         db.session.rollback()
         return jsonify({"message": f"An error occurred: {str(e)}"}), 500
 
+# API-Endpunkt zum Aktualisieren eines Ziels
+@app.route('/update_goal/<int:goal_id>', methods=['PUT'])
+def update_goal(goal_id):
+    data = request.get_json()
+    goal = Goal.query.get(goal_id)
+    
+    if not goal:
+        return jsonify({'message': 'Ziel nicht gefunden'}), 404
+
+    # Aktualisiere die Felder des Ziels
+    goal.department = data.get('department', goal.department)
+    goal.statement = data.get('statement', goal.statement)
+    goal.success_criteria = data.get('success_criteria', goal.success_criteria)
+    goal.rating = data.get('rating', goal.rating)
+    goal.assessment = data.get('assessment', goal.assessment)
+
+    db.session.commit()
+    return jsonify({'message': 'Ziel erfolgreich aktualisiert'})
+
+
+@app.route('/goals/<int:goal_id>', methods=['GET'])
+def get_goal(goal_id):
+    goal = Goal.query.get(goal_id)
+    
+    if not goal:
+        return jsonify({'message': 'Ziel nicht gefunden'}), 404
+
+    goal_data = {
+        'id': goal.id,
+        'department': goal.department,
+        'statement': goal.statement,
+        'success_criteria': goal.success_criteria,
+        'rating': goal.rating,
+        'assessment': goal.assessment,
+        'last_modified': goal.last_modified
+    }
+    
+    return jsonify({'goal': goal_data})
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
